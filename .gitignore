@@ -1,0 +1,17 @@
+
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.code-workspace
+__pycache__/
+*.pyc
+.venv/
+.env
+.ipynb_checkpoints/
+data/raw/*
+data/processed/*
+!data/processed/.keep
+logs/*
+!logs/.keep
+bi/*.pbix
