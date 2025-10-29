@@ -1,19 +1,37 @@
-
+# ── SO / sistema
 .DS_Store
 Thumbs.db
+
+# ── IDE / editor
 .vscode/
 .idea/
 *.code-workspace
+
+# ── Python
 __pycache__/
-*.pyc
+*.py[cod]
+*.pyo
 .venv/
 .env
+
+# ── Jupyter (por si lo necesito futuro)
 .ipynb_checkpoints/
-data/raw/*
-data/processed/*
-!data/processed/.keep
-logs/*
-!logs/.keep
+
+# ── Power BI (binarios pesados)
 bi/*.pbix
+
+# ── DATA: ignora TODO lo de data/ excepto los marcadores .gitkeep
+# data/**/*
+# !data/.gitkeep
+# !data/**/.gitkeep
+
+
+# ── LOGS: ignora TODO lo de logs/ excepto .gitkeep
+logs/**/*
+!logs/.gitkeep
+!logs/**/.gitkeep
+
+# ── Temporales de Office
 ~$*.docx
-~$*.doc
+~$*.xlsx
+
