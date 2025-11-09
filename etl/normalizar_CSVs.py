@@ -1,12 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-normalizar_CSVs_v3_nosup.py
+normalizar_CSVs.py
 ================================================================
 
 OBJETIVO
 --------
-Unificar tres orígenes heterogéneos de tickets (dos Kaggle + uno sintético),
+Unificar tres orígenes heterogéneos de tickets (un Kaggle + dos sintéticos),
 normalizar sus campos y formatos, asignar una categoría según una taxonomía
 de 8 clases usando diccionarios internos (ES/EN) y reglas contextuales,
 y aplicar una revisión final (fechas/estado) para obtener un CSV
@@ -38,6 +38,11 @@ from typing import Dict, List, Tuple
 import pandas as pd
 
 
+# --- CAMBIO 2025-11-02: Sustitución de Kaggle2 por Sintético2 ---
+# - Se quita Kaggle2 del script.
+# - Se añade la entrada SINTETICO2 (tickets_soporte_sintetico_2.csv).
+# - _build_final_id conserva prefijos synt2_/synt3_.
+
 # -----------------------------------------------------------------------------
 # RUTAS Y CONSTANTES GENERALES
 # -----------------------------------------------------------------------------
@@ -46,7 +51,7 @@ ROOT: Path = Path(".").resolve()
 
 # Entradas
 KAGGLE_ORIGEN1: Path = ROOT / "data" / "s2" / "dataset_kaggle_english_V2.csv"
-KAGGLE_ORIGEN2: Path = ROOT / "data" / "s2" / "dataset_kaggle_english_2_V2.csv"
+SINTETICO2:     Path  = ROOT / "data" / "s2" / "tickets_soporte_sintetico_2.csv"
 SINTETICO:      Path = ROOT / "data" / "s2" / "tickets_soporte_sintetico.csv"
 
 # Salidas
@@ -63,8 +68,7 @@ OUT_BY_CHANNEL: Dict[str, Path] = {
 REPORT_PATH: Path = LOGS_DIR / "normalizar_report.json"
 POSTFIX_LOG: Path  = LOGS_DIR / "postfix_changes.csv"
 
-# Esquema mínimo esperado en la salida. Si faltasen columnas en origen,
-# se crean vacías para evitar errores y asegurar consistencia.
+# Esquema. Si faltasen columnas en origen, se crean vacías para evitar errores y asegurar consistencia.
 CAMPOS_FINALES: List[str] = [
     "id_ticket","canal","fecha_creacion","first_reply_at","fecha_cierre",
     "estado","prioridad","categoria","agente_id","sla_target_horas","sla_met",
@@ -87,20 +91,19 @@ ALIASES_MAP.update({
     "content":"descripcion","description":"descripcion","ticket_description":"descripcion","body":"descripcion"
 })
 
-# Conjuntos de encodings. Muchos CSV pueden venir en cp1252/latin-1
-# o con BOM (utf‑8‑sig). Se probará en orden hasta que uno funcione.
+# Conjuntos de encodings. Muchos CSV pueden venir en cp1252/latin-1 o con BOM (utf‑8‑sig). Se probará en orden hasta que uno funcione.
 CODIGOS: List[str] = ["utf-8","utf-8-sig","latin-1","cp1252","utf-16","utf-16le","utf-16be"]
 
 
-# -----------------------------------------------------------------------------
+#-------------------------------------------
 # DICCIONARIOS PARA CATEGORIZACIÓN (ES/EN)
-# -----------------------------------------------------------------------------
+#-------------------------------------------
 # La etiqueta `categoria` se decide por:
 #   1) Coincidencias de keywords base (peso = 1.0),
 #   2) Términos de refuerzo en “ADD” (peso = +1.5),
 #   3) Penalizaciones en “NEG” (peso = −1.0),
 #   4) Reglas contextuales para casos ambiguos.
-# Después de puntuar, si hay empate, se desempatan con `CAT_ORDER` (orden estable).
+# Después de puntuar, si hay empate, se desempatan con `CAT_ORDER`.
 
 KW: Dict[str, List[str]] = {
     "ACC": [
@@ -130,7 +133,9 @@ KW: Dict[str, List[str]] = {
     ],
     "APP": [
         "sap","erp","crm","bpm","salesforce","dynamics","navision","sage","jira","confluence",
-        "power bi","sharepoint","servicenow","oracle","oracle database","oracle db","workday","netsuite","odoo","sccm","webex"
+        "power bi","sharepoint","servicenow","oracle","oracle database","oracle db","workday","netsuite","odoo","sccm","webex",
+        "intranet", "intranet corporativa", "portal interno","intranet site", "sitio de intranet", 
+        "página de intranet", "pagina de intranet"
     ],
     "SRV": [
         "alta","baja","solicito","solicitud","petición","peticion","permiso de acceso","como hago","manual","procedimiento",
@@ -172,11 +177,10 @@ W_HIT: float = 1.0
 W_ADD: float = 1.5
 W_NEG: float = -1.0
 
-# Reglas contextuales: si aparecen ciertos términos (“if_any”), preferimos una
-# categoría y “degradamos” otras. Útil para casos ambiguos.
+# Reglas contextuales: si aparecen ciertos términos (“if_any”), "prefiere" una categoría y “degrada” otras. Para casos ambiguos.
 REGLAS_CONTEXTUALES: List[dict] = [
     {"if_any": ["outlook","mailbox","imap","smtp","email"], "prefer": "MAIL", "demote": ["ACC"], "boost": 0.5, "force": False},
-    {"if_any": ["oracle","oracle database","sharepoint","jira","confluence","power bi","servicenow","sccm","webex"], "prefer": "APP", "demote": ["SW","HW"], "boost": 0.7, "force": False},
+    {"if_any": ["oracle","oracle database","sharepoint","jira","confluence","power bi","servicenow","sccm","webex","intranet","portal interno","intranet site","sitio de intranet","página de intranet","pagina de intranet"], "prefer": "APP", "demote": ["SW","HW","NET","SRV"], "boost": 0.7, "force": False},
     {"if_any": ["defender","endpoint protection","security policy","network policy","blocked by policy","quarantine"], "prefer": "POL", "demote": ["NET","SW"], "boost": 0.7, "force": False},
     {"if_any": ["ip address","dns","vpn","proxy","router","switch","packet loss","latency"], "prefer": "NET", "demote": ["MAIL","SRV"], "boost": 0.5, "force": False},
 ]
@@ -185,9 +189,9 @@ REGLAS_CONTEXTUALES: List[dict] = [
 CAT_ORDER: List[str] = ["ACC","MAIL","NET","HW","SW","APP","POL","SRV"]
 
 
-# -----------------------------------------------------------------------------
+#-------------------------------------------
 # UTILIDADES DE LECTURA Y NORMALIZACIÓN BÁSICA
-# -----------------------------------------------------------------------------
+#-------------------------------------------
 
 def _normalize_col(col: str) -> str:
     """
@@ -207,27 +211,40 @@ def _normalize_col(col: str) -> str:
 
 def _read_csv_any(path: Path) -> pd.DataFrame:
     """
-    Lector de CSV:
-      1) prueba múltiples encodings (ver `CODIGOS`),
-      2) intenta deducir el separador con `csv.Sniffer` (entre `; , | \\t`),
-      3) carga con `dtype=str` y sin NAs.
+    Hace sniff del separador desde bytes (evita UnicodeDecodeError en la muestra)
+    y luego prueba combinaciones de encoding/engine/sep. Último recurso: sep=None (pandas infiere).
     """
-    last = None
     import csv as _csv
-    for enc in CODIGOS:
-        try:
-            sample = path.read_text(encoding=enc, errors="strict")[:4096]
-        except Exception as e:
-            last = e; continue
-        try:
-            sep = _csv.Sniffer().sniff(sample, delimiters=";,|\t").delimiter
-        except Exception:
-            sep = "," if sample.count(",") >= sample.count(";") else ";"
-        try:
-            return pd.read_csv(path, sep=sep, encoding=enc, dtype=str, keep_default_na=False, engine="python")
-        except Exception as e:
-            last = e; continue
-    raise last or RuntimeError(f"Imposible leer {path}")
+    # 1) Sniff del separador desde bytes
+    sample_bytes = path.read_bytes()[:65536]
+    sample_text  = sample_bytes.decode("utf-8", errors="ignore")
+    try:
+        sep_sniff = _csv.Sniffer().sniff(sample_text, delimiters=";,|\t,").delimiter
+    except Exception:
+        counts = {",": sample_text.count(","), ";": sample_text.count(";"),
+                  "\t": sample_text.count("\t"), "|": sample_text.count("|")}
+        sep_sniff = max(counts, key=counts.get) if any(counts.values()) else ","
+
+    # 2) Ciclo de prueba: encodings y separadores habituales
+    encodings = ["utf-8-sig", "utf-8", "cp1252", "latin-1"]
+    seps      = [sep_sniff, ",", ";", "\t", "|"]
+    engines   = ["python", "c"]
+    for enc in encodings:
+        for eng in engines:
+            for sep in seps:
+                try:
+                    return pd.read_csv(
+                        path, sep=sep, encoding=enc, engine=eng,
+                        dtype=str, keep_default_na=False, on_bad_lines="skip"
+                    )
+                except Exception:
+                    continue
+    # 3) Último recurso: que pandas adivine el separador
+    try:
+        return pd.read_csv(path, sep=None, engine="python",
+                           dtype=str, keep_default_na=False, on_bad_lines="skip")
+    except Exception as e:
+        raise RuntimeError(f"Imposible leer {path} con encodings/sep probados") from e
 
 
 def _rename_cols(df: pd.DataFrame) -> pd.DataFrame:
@@ -298,10 +315,10 @@ def _low(s: str) -> str:
     return (str(s) if s is not None else "").strip().lower()
 
 
-# --- Mapeos de catálogos heterogéneos a valores canónicos ---
+# Mapeos de catálogos heterogéneos a valores canónicos
 
 def _map_canal_k1(v: str) -> str:
-    """Mapeo específico del dataset Kaggle 1 -> catálogo de canales interno."""
+    """Mapeo específico del dataset Kaggle -> catálogo de canales interno."""
     t = _low(v)
     if t in {"chat","self-service","self service"}: return "PORTAL_SOPORTE"
     if t in {"mail","email"}: return "EMAIL"
@@ -309,20 +326,10 @@ def _map_canal_k1(v: str) -> str:
     return "PORTAL_SOPORTE"
 
 
-def _map_canal_k2(v: str) -> str:
-    """Mapeo específico del dataset Kaggle 2 -> catálogo de canales interno."""
-    t = _low(v)
-    if t == "chat": return "PORTAL_SOPORTE"
-    if t == "email": return "EMAIL"
-    if t == "phone": return "PORTAL_INTERNO"
-    if t == "social media": return "PORTAL_SOPORTE"
-    return "PORTAL_SOPORTE"
-
-
 def _map_priority(v: str) -> str:
-    """Normaliza prioridad a Crítica, Alta, Media, Baja."""
+    """Normaliza prioridad a Urgente, Alta, Media, Baja."""
     t = _low(v)
-    if t in {"critical","critica","crítica","p1"}: return "Crítica"
+    if t in {"critical","critica","crítica","p1"}: return "Urgente"
     if t in {"high","alta","urgent","p2"}:        return "Alta"
     if t in {"medium","media","normal","p3"}:     return "Media"
     if t in {"low","baja","minor","p4"}:          return "Baja"
@@ -330,7 +337,7 @@ def _map_priority(v: str) -> str:
 
 
 def _map_state(v: str) -> str:
-    """Normaliza estado a catálogo cerrado y consistente."""
+    """Normaliza estado a catálogo cerrado."""
     t = _low(v)
     if t in {"open","abierto","pendiente","new"}:               return "Abierto"
     if t in {"in progress","en progreso","en curso","working"}: return "En curso"
@@ -352,9 +359,9 @@ def _norm_sla(v: str) -> str:
     return ""
 
 
-# -----------------------------------------------------------------------------
+#-------------------------------------------
 # CLASIFICACIÓN POR EXPR. REGULARES (KEYWORDS + REGLAS)
-# -----------------------------------------------------------------------------
+#-------------------------------------------
 
 def _normalize_for_regex(token: str) -> str:
     """Quita tildes y convierte espacios en `\\s+` para cuadrar variantes.”"""
@@ -363,7 +370,7 @@ def _normalize_for_regex(token: str) -> str:
     return t
 
 
-# Pre‑compilar patrones (mejora rendimiento en bucles por fila).
+# Precompilar patrones (mejor rendimiento en bucles por fila).
 PAT_BASE = {
     cat: [re.compile(rf"(?<!\w){_normalize_for_regex(tok)}(?!\w)", flags=re.I) for tok in toks]
     for cat, toks in KW.items()
@@ -379,8 +386,7 @@ def _score_text(text: str) -> Tuple[Dict[str, float], int, int]:
       - add_hit: nº de impactos ADD,
       - neg_hit: nº de impactos NEG.
 
-    Nota: se usa regex con anclas de palabra para evitar falsos positivos en
-    subcadenas (“mail” dentro de “examplemail” por ejemplo).
+    Nota: se usa regex con anclas de palabra para evitar falsos positivos en subcadenas (“mail” dentro de “examplemail” por ejemplo).
     """
     t = "".join(c for c in unicodedata.normalize("NFD", text or "") if unicodedata.category(c) != "Mn")
     scores: Dict[str, float] = {c:0.0 for c in KW.keys()}
@@ -412,9 +418,8 @@ def _score_text(text: str) -> Tuple[Dict[str, float], int, int]:
 
 def _aplicar_reglas_contexto(text: str, scores: Dict[str, float]) -> Dict[str, float]:
     """
-    Si el texto contiene términos de `if_any`, se potencia `prefer` y se
-    degradan categorías de `demote`. Si `force=True`, fuerza que `prefer`
-    quede por encima de cualquier otra puntuación.
+    Si el texto contiene términos de `if_any`, se potencia `prefer` y se degradan categorías de `demote`. 
+    Si `force=True`, fuerza que `prefer` quede por encima de cualquier otra puntuación.
     """
     t = "".join(c for c in unicodedata.normalize("NFD", text or "") if unicodedata.category(c) != "Mn").lower()
     s = scores.copy()
@@ -454,47 +459,56 @@ def _decide(scores: Dict[str, float]) -> str:
     return "SRV"
 
 
-# -----------------------------------------------------------------------------
+#-------------------------------------------
 # NORMALIZACIÓN POR FUENTE + CATEGORIZACIÓN
-# -----------------------------------------------------------------------------
+#-------------------------------------------
 
 def _build_final_id(source_name: str, original_id: str, row_index: int) -> str:
-    """
-    Construye un id final “origen_idOriginal”; si no hay id original,
-    genera uno sintético reproducible (`*_GEN{n}`).
-    """
     orig = (original_id or "").strip()
     if orig == "":
-        if source_name == "kaggle_1": return f"kaggle1_GEN{row_index+1}"
-        if source_name == "kaggle_2": return f"kaggle2_GEN{row_index+1}"
+        if source_name == "kaggle_1":
+            return f"kaggle1_GEN{row_index+1}"
+        if source_name == "sintetico_2":
+            return f"synt2_GEN{row_index+1}"
         return f"synt_GEN{row_index+1}"
-    prefix = "kaggle1_" if source_name == "kaggle_1" else ("kaggle2_" if source_name == "kaggle_2" else "synt_")
-    return f"{prefix}{orig}"
+
+    low = orig.lower()
+
+    if source_name == "kaggle_1":
+        # No duplica si ya viene con prefijo
+        return orig if low.startswith(("kaggle1_", "k1_")) else f"kaggle1_{orig}"
+
+    if source_name == "sintetico_2":
+        # Acepta synt2_/synt3_/synt_ de origen sin volver a prefijar
+        return orig if low.startswith(("synt2_", "synt3_", "synt_")) else f"synt2_{orig}"
+
+    # Fuente 'sintetico' (la genérica)
+    return orig if low.startswith(("synt_", "synt2_", "synt3_")) else f"synt_{orig}"
 
 
 def _normalize_source(path: Path, fuente: str) -> Tuple[pd.DataFrame, Dict[str, int]]:
-    """
-    Lee y normaliza origen:
-      - aplica aliases,
-      - mapea canal/estado/prioridad,
-      - normaliza fechas y `sla_met`,
-      - genera `id_ticket` final,
-      - asigna `categoria` por diccionarios + reglas,
-      - devuelve (dataframe_normalizado, stats_de_puntuación).
-    """
     df_raw = _read_csv_any(path)
     df = _rename_cols(df_raw)
 
-    # Garantizar columnas (si faltan en la fuente -> columnas vacías)
+    # Garantizar columnas mínimas
     for c in CAMPOS_FINALES:
-        if c not in df.columns: 
+        if c not in df.columns:
             df[c] = ""
 
-    # Canal: algunos orígenes codifican distinto; se normaliza por fuente
+    # Canal por fuente
     if fuente == "kaggle_1":
         df["canal"] = df["canal"].apply(_map_canal_k1)
-    elif fuente == "kaggle_2":
-        df["canal"] = df["canal"].apply(_map_canal_k2)
+
+    # Fechas de cierre por fuente
+    mapped = False
+    if fuente == "kaggle_1":
+        res_cols = [c for c in df.columns if _normalize_col(c) in ("resolved_at",)]
+        if res_cols:
+            df["fecha_cierre"] = df[res_cols[0]]
+            mapped = True
+
+    if "fecha_cierre" not in df.columns:
+        df["fecha_cierre"] = pd.NA
 
     # Si el texto menciona documentación/KB -> Portal Documental
     full_txt = (df.get("resumen","").astype(str) + " " + df.get("descripcion","").astype(str))
@@ -506,7 +520,8 @@ def _normalize_source(path: Path, fuente: str) -> Tuple[pd.DataFrame, Dict[str, 
     df["estado"]         = df["estado"].apply(_map_state)
     df["fecha_creacion"] = df["fecha_creacion"].apply(_to_iso)
     df["first_reply_at"] = df["first_reply_at"].apply(_to_iso)
-    df["fecha_cierre"]   = df["fecha_cierre"].apply(_to_iso)
+    if "fecha_cierre" in df.columns:
+        df["fecha_cierre"] = df["fecha_cierre"].apply(_to_iso)
     df["sla_met"]        = df["sla_met"].apply(_norm_sla)
 
     # ID final
@@ -514,7 +529,7 @@ def _normalize_source(path: Path, fuente: str) -> Tuple[pd.DataFrame, Dict[str, 
     ids = [ _build_final_id(fuente, orig, i) for i, orig in enumerate(base_ids) ]
     df["id_ticket"] = pd.Series(ids, index=df.index)
 
-    # Categorización por texto (resumen + descripción)
+    # Categorización (resumen + descripción)
     cats: List[str] = []
     add_rows = 0
     neg_rows = 0
@@ -523,12 +538,12 @@ def _normalize_source(path: Path, fuente: str) -> Tuple[pd.DataFrame, Dict[str, 
         text = f"{r.get('resumen','')} | {r.get('descripcion','')}"
         scores, add_hit, neg_hit = _score_text(text)
         scores2 = _aplicar_reglas_contexto(text, scores)
-        if scores2 != scores: 
+        if scores2 != scores:
             ctx_rows += 1
         cats.append(_decide(scores2))
-        if add_hit > 0: 
+        if add_hit > 0:
             add_rows += 1
-        if neg_hit > 0: 
+        if neg_hit > 0:
             neg_rows += 1
 
     df["categoria"] = cats
@@ -538,9 +553,9 @@ def _normalize_source(path: Path, fuente: str) -> Tuple[pd.DataFrame, Dict[str, 
     return df, stats
 
 
-# -----------------------------------------------------------------------------
+#-------------------------------------------
 # POSTFIX DE COHERENCIA EN FECHAS/ESTADO
-# -----------------------------------------------------------------------------
+#-------------------------------------------
 
 OPEN_STATES_ES   = {"Abierto","En curso","Reabierto"}
 CLOSED_STATES_ES = {"Cerrado","Resuelto"}
@@ -603,16 +618,16 @@ def _postfix_dates_states(df: pd.DataFrame) -> pd.DataFrame:
             changes.append({"id_ticket": _id, "regla": "1_open_with_close_cleared", "antes_fecha_cierre": before, "despues_fecha_cierre": ""})
         close.loc[mask1] = pd.NaT
 
-    # Regla 3: cierre < creación -> vaciar
+    # Regla 2: cierre menor que creación -> vaciar
     mask3 = close.notna() & crea.notna() & (close < crea)
     if mask3.any():
         for _id, before in zip(out.loc[mask3, "id_ticket"], _fmt_iso(close[mask3])):
             changes.append({"id_ticket": _id, "regla": "3_close_before_creation_cleared", "antes_fecha_cierre": before, "despues_fecha_cierre": ""})
         close.loc[mask3] = pd.NaT
 
-    # Regla 4: cierre < first_reply_at
+    # Regla 3: cierre menor que first_reply_at
     mask4 = close.notna() & first.notna() & (close < first)
-    # 4a) Si cerrado/resuelto -> fix a max(first, crea) si existe; si no, vaciar
+    # 3a) Si cerrado/resuelto -> fix a max(first, crea) si existe; si no -> vaciar
     mask4a = mask4 & estado.isin(CLOSED_STATES_ES)
     if mask4a.any():
         target = pd.Series(pd.NaT, index=out.index, dtype="datetime64[ns]")
@@ -628,14 +643,14 @@ def _postfix_dates_states(df: pd.DataFrame) -> pd.DataFrame:
                 changes.append({"id_ticket": _id, "regla": "4_close_before_first_cleared_no_candidate", "antes_fecha_cierre": before, "despues_fecha_cierre": ""})
             close.loc[vaciar] = pd.NaT
 
-    # 4b) Si el estado no es de cierre -> vaciar
+    # 3b) Si el estado no es de cierre -> vaciar
     mask4b = mask4 & ~estado.isin(CLOSED_STATES_ES)
     if mask4b.any():
         for _id, before in zip(out.loc[mask4b, "id_ticket"], _fmt_iso(close[mask4b])):
             changes.append({"id_ticket": _id, "regla": "4_close_before_first_cleared_open_state", "antes_fecha_cierre": before, "despues_fecha_cierre": ""})
         close.loc[mask4b] = pd.NaT
 
-    # Regla 2: estado cerrado/resuelto y cierre vacío -> imputar a max(first, crea)
+    # Regla 4: estado cerrado/resuelto y cierre vacío -> imputar a max(first, crea)
     mask2 = estado.isin(CLOSED_STATES_ES) & close.isna()
     if mask2.any():
         candidate = pd.concat([first, crea], axis=1).max(axis=1)
@@ -651,25 +666,25 @@ def _postfix_dates_states(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-# -----------------------------------------------------------------------------
+#-------------------------------------------
 # PROGRAMA PRINCIPAL
-# -----------------------------------------------------------------------------
+#-------------------------------------------
 
 def main() -> None:
     """
     Orquesta el pipeline:
-      1) Normaliza/categoriza Kaggle1, Kaggle2 y Sintético.
+      1) Normaliza/categoriza los CSVs.
       2) Concatena resultados.
       3) Aplica postfix de coherencia fechas/estado.
       4) Exporta CSV unificado y cortes por canal.
       5) Guarda reporte agregado con contadores de interés.
     """
-    # 1) Normalización por fuente (devuelve DF + pequeñas métricas internas)
+    # 1) Normalización por fuente (devuelve DF + pequeñas métricas)
     k1, st1 = _normalize_source(KAGGLE_ORIGEN1, "kaggle_1")
-    k2, st2 = _normalize_source(KAGGLE_ORIGEN2, "kaggle_2")
+    k2, st2 = _normalize_source(SINTETICO2, "sintetico_2")
     sy, st3 = _normalize_source(SINTETICO,      "sintetico")
 
-    # 2) Unificación (mismos campos en el mismo orden)
+    # 2) Unificación (mismos campos mismo orden)
     final = pd.concat([k1, k2, sy], ignore_index=True)
 
     # 3) Postfix de coherencia temporal
@@ -687,9 +702,9 @@ def main() -> None:
         "por_canal": final["canal"].value_counts(dropna=False).to_dict(),
         "por_categoria": final["categoria"].value_counts(dropna=False).to_dict(),
         "impacto_diccionarios": {
-            "kaggle_1": st1,
-            "kaggle_2": st2,
-            "sintetico": st3
+            "kaggle_1":   st1,
+            "sintetico_2": st2,
+            "sintetico":  st3
         },
         "salidas": {
             "todo": str(OUT_ALL),
@@ -699,7 +714,7 @@ def main() -> None:
     }
     REPORT_PATH.write_text(json.dumps(info, indent=2, ensure_ascii=False), encoding="utf-8")
 
-    # Mensajes de consola
+    # Mensajes consola
     print("[OK] Normalización + categorización + POST-FIX fechas/estado completadas.")
     print(f"Unificado: {OUT_ALL}")
     print(f"Postfix log: {POSTFIX_LOG}")

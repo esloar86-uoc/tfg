@@ -1,0 +1,5 @@
+- MySQL Server 8.0 instalado como servicio MySQL80 (Windows).
+- Puerto: 3306. Autenticación: caching_sha2_password.
+- Usuario admin: root (password guardada fuera de repositorio).
+- Cliente: MySQL Workbench 8.0 CE. Conexión local creada y probada.
+- Próximo paso: ejecutar db/01_schema_ddl.sql sobre el schema tfg.
