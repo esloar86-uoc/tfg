@@ -31,7 +31,7 @@
 Repo: **https://github.com/esloar86-uoc/tfg**  
 SO: **Windows 10/11** · DB: **MySQL 8.x** · Python: **3.10+** · BI: **Power BI Desktop**
 
-> [!NOTE]
+> [!InProgress]
 > Los pasos marcados como **PEC2** se completan en esta entrega. **PEC3** se cubrirá cuando toque.
 
 ---
