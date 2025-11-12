@@ -1,0 +1,4 @@
+modelo         best_params  accuracy_valid  f1_macro_valid
+   svm     {'clf__C': 2.0}        0.765306        0.734430
+    lr     {'clf__C': 2.0}        0.724490        0.677859
+    nb {'clf__alpha': 0.5}        0.581633        0.480749

@@ -1,0 +1,17 @@
+              precision    recall  f1-score   support
+
+         ACC       0.93      0.72      0.81        18
+         APP       0.90      0.50      0.64        18
+          HW       0.76      0.81      0.79        16
+        MAIL       0.92      0.67      0.77        18
+         NET       0.63      0.74      0.68        23
+         POL       0.67      0.15      0.25        13
+         SRV       0.89      0.59      0.71        27
+          SW       0.64      0.95      0.76        63
+
+    accuracy                           0.72       196
+   macro avg       0.79      0.64      0.68       196
+weighted avg       0.76      0.72      0.71       196
+
+
+accuracy=0.7245  f1_macro=0.6779

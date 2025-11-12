@@ -1,0 +1,32 @@
+{
+  "nb": {
+    "best_params": {
+      "clf__alpha": 0.5
+    },
+    "cv_best_f1_macro": 0.6220206128923578,
+    "valid_f1_macro": 0.6192146658948527,
+    "pred_path": "C:\\Users\\Fany\\Desktop\\UOC_2025\\2025_2_TFG\\GIT\\Resultados\\experimentos\\20251111_130612_baselines\\E1_texto_nb\\predicciones_valid.csv",
+    "report_path": "C:\\Users\\Fany\\Desktop\\UOC_2025\\2025_2_TFG\\GIT\\Resultados\\experimentos\\20251111_130612_baselines\\E1_texto_nb\\classification_report.txt",
+    "cm_path": "C:\\Users\\Fany\\Desktop\\UOC_2025\\2025_2_TFG\\GIT\\Resultados\\experimentos\\20251111_130612_baselines\\E1_texto_nb\\confusion_matrix.png"
+  },
+  "logreg": {
+    "best_params": {
+      "clf__C": 2.0
+    },
+    "cv_best_f1_macro": 0.676809485562068,
+    "valid_f1_macro": 0.7355245004288596,
+    "pred_path": "C:\\Users\\Fany\\Desktop\\UOC_2025\\2025_2_TFG\\GIT\\Resultados\\experimentos\\20251111_130612_baselines\\E1_texto_logreg\\predicciones_valid.csv",
+    "report_path": "C:\\Users\\Fany\\Desktop\\UOC_2025\\2025_2_TFG\\GIT\\Resultados\\experimentos\\20251111_130612_baselines\\E1_texto_logreg\\classification_report.txt",
+    "cm_path": "C:\\Users\\Fany\\Desktop\\UOC_2025\\2025_2_TFG\\GIT\\Resultados\\experimentos\\20251111_130612_baselines\\E1_texto_logreg\\confusion_matrix.png"
+  },
+  "svm": {
+    "best_params": {
+      "clf__C": 2.0
+    },
+    "cv_best_f1_macro": 0.7129467792296365,
+    "valid_f1_macro": 0.7686340821974464,
+    "pred_path": "C:\\Users\\Fany\\Desktop\\UOC_2025\\2025_2_TFG\\GIT\\Resultados\\experimentos\\20251111_130612_baselines\\E1_texto_svm\\predicciones_valid.csv",
+    "report_path": "C:\\Users\\Fany\\Desktop\\UOC_2025\\2025_2_TFG\\GIT\\Resultados\\experimentos\\20251111_130612_baselines\\E1_texto_svm\\classification_report.txt",
+    "cm_path": "C:\\Users\\Fany\\Desktop\\UOC_2025\\2025_2_TFG\\GIT\\Resultados\\experimentos\\20251111_130612_baselines\\E1_texto_svm\\confusion_matrix.png"
+  }
+}
