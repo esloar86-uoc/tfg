@@ -1,9 +1,9 @@
-<?xml version="1.0" encoding="UTF-8"?><project name="Gantt TFG" company="" webLink="http://" view-date="2025-10-07" view-index="0" gantt-divider-location="501" resource-divider-location="300" version="3.3.3316" locale="es_ES">
+<?xml version="1.0" encoding="UTF-8"?><project name="Gantt TFG" company="" webLink="http://" view-date="2025-10-18" view-index="0" gantt-divider-location="486" resource-divider-location="300" version="3.3.3316" locale="es_ES">
     <description/>
     <view zooming-state="default:3" id="gantt-chart">
-        <field id="tpd3" name="Nombre" width="295" order="0"/>
-        <field id="tpd4" name="Fecha de inicio" width="95" order="1"/>
-        <field id="tpd5" name="Fecha de fin" width="95" order="2"/>
+        <field id="tpd3" name="Nombre" width="286" order="0"/>
+        <field id="tpd4" name="Fecha de inicio" width="92" order="1"/>
+        <field id="tpd5" name="Fecha de fin" width="92" order="2"/>
         <field id="tpd15" name="Notas" width="20" order="3"/>
         <option id="filter.completedTasks" value="false"/>
         <option id="filter.dueTodayTasks" value="false"/>
@@ -49,7 +49,7 @@
             <task id="10" uid="5ae7bdbe058540e696a7995b6c5f8f7d" name="Selección de herramientas" meeting="false" start="2025-10-05" duration="4" complete="100" expand="true"/>
             <task id="13" uid="456d748af85040f3b7cd5d60d230dba8" name="Revisión y entrega" meeting="false" start="2025-10-09" duration="4" complete="100" expand="true"/>
         </task>
-        <task id="2" uid="3bebfcd7ab274c00a6ca0b80b36db330" name="PEC2" meeting="false" start="2025-10-13" duration="31" complete="83" expand="true">
+        <task id="2" uid="3bebfcd7ab274c00a6ca0b80b36db330" name="PEC2" meeting="false" start="2025-10-13" duration="43" complete="85" expand="true">
             <task id="14" uid="f63a9e3a331d41ffa957dd9e23802591" name="Diseño de esquemas por canal" meeting="false" start="2025-10-13" duration="5" complete="100" expand="true"/>
             <task id="15" uid="0b967a336a36409793a206c1971808b8" name="Generación de datasets" meeting="false" start="2025-10-14" duration="20" complete="100" expand="true">
                 <notes><![CDATA[Han existido dificultades a la hora de encontrar buenos datasets con los que trabajar para simular una carga de datos lo más real posible.]]></notes>
@@ -58,12 +58,12 @@
                 <notes><![CDATA[En el tiempo de proceso ETL se incluye tanto ETL-A como ETL-B]]></notes>
             </task>
             <task id="20" uid="7bff9f0bf6594e48ba8f20c45beb613b" name="Datawarehouse" meeting="false" start="2025-10-30" duration="8" complete="100" expand="true"/>
-            <task id="19" uid="771c3565100d420fb10800a01599edca" name="Carga + verificación MySQL" meeting="false" start="2025-11-02" duration="3" complete="100" expand="true"/>
-            <task id="22" uid="25ea4058aa2f4c9680302726ef9d347c" name="ML: Preparación de datos" meeting="false" start="2025-11-04" duration="2" complete="100" expand="true"/>
-            <task id="23" uid="c8d1e38f80144d91b5d4dc3297ad3a22" name="Vectorización" meeting="false" start="2025-11-05" duration="3" complete="0" expand="true"/>
-            <task id="24" uid="14ec0f904ad4435f9f10eea51300dd22" name="Entrenamiento + validación" meeting="false" start="2025-11-07" duration="5" complete="0" expand="true"/>
-            <task id="25" uid="1f55cdc298924d999dd72a8e17591c66" name="Comparativa y selección" meeting="false" start="2025-11-10" duration="2" complete="0" expand="true"/>
-            <task id="26" uid="0b84b66c1bf9405cbf01e9f6f4718052" name="Empaquetado + demos" meeting="false" start="2025-11-11" duration="2" complete="0" expand="true"/>
+            <task id="19" uid="771c3565100d420fb10800a01599edca" name="Carga + verificación MySQL" meeting="false" start="2025-11-06" duration="3" complete="100" expand="true"/>
+            <task id="22" uid="25ea4058aa2f4c9680302726ef9d347c" name="ML: Preparación de datos" meeting="false" start="2025-11-08" duration="4" complete="100" expand="true"/>
+            <task id="23" uid="c8d1e38f80144d91b5d4dc3297ad3a22" name="Vectorización" meeting="false" start="2025-11-08" duration="3" complete="100" expand="true"/>
+            <task id="25" uid="1f55cdc298924d999dd72a8e17591c66" name="Comparativa y selección" meeting="false" start="2025-11-10" duration="10" complete="50" expand="true"/>
+            <task id="24" uid="14ec0f904ad4435f9f10eea51300dd22" name="Entrenamiento + validación" meeting="false" start="2025-11-19" duration="5" complete="0" expand="true"/>
+            <task id="26" uid="0b84b66c1bf9405cbf01e9f6f4718052" name="Empaquetado + demos" meeting="false" start="2025-11-23" duration="2" complete="0" expand="true"/>
         </task>
         <task id="3" uid="92b740e078c5443bb053c12357ddae63" name="PEC3" meeting="false" start="2025-11-13" duration="32" complete="0" expand="true">
             <task id="27" uid="246c5ac473c340e896a1cae05d58cf7a" name="Integración" meeting="false" start="2025-11-13" duration="6" complete="0" expand="true"/>
