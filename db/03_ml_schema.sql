@@ -66,3 +66,16 @@ JOIN tickets_clasificados tc ON tc.id_ticket = f.id_ticket
 JOIN d_tipo dr ON dr.id_tipo = f.id_tipo_real
 JOIN d_tipo dp ON dp.id_tipo = tc.id_tipo_predicho
 GROUP BY dr.codigo, dp.codigo;
+
+-- 6) Tickets con texto + METADATOS + etiqueta real (para entrenar/validar)
+CREATE OR REPLACE VIEW vw_tickets_para_modelo AS
+SELECT
+  f.id_ticket,
+  CONCAT_WS(' ', NULLIF(f.asunto,''), NULLIF(f.descripcion,'')) AS texto,
+  f.id_canal,
+  f.id_prioridad,
+  f.id_estado,
+  f.sla_met,
+  f.id_tipo_real
+FROM f_tickets f
+WHERE f.id_tipo_real IS NOT NULL;  -- sólo los que tienen etiqueta real humana

@@ -1,0 +1,8 @@
+{
+  "with_meta": false,
+  "best_params": {
+    "clf__alpha": 0.5
+  },
+  "cv_best_f1_macro": 0.6220206128923578,
+  "valid_f1_macro": 0.6192146658948527
+}
