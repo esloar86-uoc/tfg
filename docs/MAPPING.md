@@ -25,19 +25,6 @@ Heurística de canal (texto en resumen/descripcion):
     INTERNO si phone/call/legal/agent/internal
     Otro caso SOPORTE.
 
-## 2. dataset_kaggle_english_2_V2.csv (data/s2/)
-
-| Origen               | Destino        | Regla         |
-|----------------------|----------------|---------------|
-| Ticket ID            | id_ticket      | —             |
-| Ticket Channel       | canal          | Email->EMAIL; Chat->PORTAL_SOPORTE; Phone->PORTAL_INTERNO; Social media->PORTAL_DOCUMENTAL |
-| creation_date        | fecha_creacion | Parseo → ISO  |
-| First Response Time  | first_reply_at | Parseo → ISO  |
-| Ticket Status        | estado         | A catálogo    |
-| Ticket Priority      | prioridad      | A catálogo    |
-| Ticket Subject       | resumen        | —             |
-| Ticket Description   | descripcion    | —             |
-| Resolved At          | fecha_cierre   | Parseo ->ISO si existe |
 
 ## 3. tickets_soporte_sintetico.csv (data/s2/)
 

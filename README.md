@@ -23,4 +23,3 @@ Guía de pasos para clonar, configurar el entorno y ejecutar el proyecto: **[run
 ## Datos / licencias
 Este repositorio incluye datos de terceros:
 - Kaggle 1: *dataset_kaggle_english__synthetic-it-call-center-tickets.csv*, CC0 (Public Domain). Fuente: <https://www.kaggle.com/datasets/kameronbrooks/synthetic-it-call-center-tickets-v1>.
-- Kaggle 2: *dataset_kaggle_english_2__customer_support_tickets.csv*, CC BY 4.0. Fuente: <https://www.kaggle.com/datasets/suraj520/customer-support-ticket-dataset>.
