@@ -1,7 +1,6 @@
---==========================================================
--- 
+--=================
 -- 05_ml_splits.sql 
---==========================================================
+--=================
 USE tfg;
 
 -- 1) Vista base para ML (por si cambia vw_ml_training en el futuro)
@@ -13,7 +12,7 @@ SELECT
   f.id_prioridad,
   f.id_estado,
   f.sla_met,
-  f.id_tipo_real   -- etiqueta "verdad terreno"
+  f.id_tipo_real
 FROM f_tickets f;
 
 -- 2) Split reproducible (80/20) usando CRC32 del id_ticket

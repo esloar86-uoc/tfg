@@ -1,7 +1,7 @@
---==========================================================
+--==============================================================
 -- 02_staging_load.sql  (manual_cat.csv -> staging -> f_tickets)
 -- Limpieza staging, promoción idempotente, KPIs y linaje
---==========================================================
+--==============================================================
 
 USE tfg;
 
@@ -55,9 +55,9 @@ WHERE UPPER(estado)='ABIERTO';
 -- SELECT s.prioridad, COUNT(*) FROM stg_tickets s LEFT JOIN d_prioridad d ON d.prioridad=s.prioridad WHERE d.id_prioridad IS NULL GROUP BY s.prioridad;
 -- SELECT s.estado, COUNT(*) FROM stg_tickets s LEFT JOIN d_estado d ON d.estado=s.estado WHERE d.id_estado IS NULL GROUP BY s.estado;
 
--------------------------------------------------------
+-----------------------------------------
 -- 2. Promoción a capa GOLD (idempotente)
--------------------------------------------------------
+-----------------------------------------
 START TRANSACTION;
 
 -- 2.1. Borrar linaje de este conjunto (evita FK 1451)
@@ -204,9 +204,9 @@ JOIN f_tickets   f ON f.ticket_code = st.id_ticket;
 
 COMMIT;
 
--------------------------------------------------------
+---------------------
 -- 3. Verificaciones
--------------------------------------------------------
+---------------------
 -- SELECT COUNT(*) AS stg  FROM stg_tickets;
 -- SELECT COUNT(*) AS fact FROM f_tickets WHERE ticket_code IN (SELECT id_ticket FROM stg_tickets);
 -- SELECT COUNT(*) AS lin  FROM map_id_origen WHERE origen='manual' AND id_origen IN (SELECT id_ticket FROM stg_tickets);

@@ -1,11 +1,15 @@
-#------------------------------
+#----------------------------
 # 07_experimentos_E2_meta.py
-#------------------------------
+#----------------------------
 """
 E2: Texto (TF-IDF) + metadatos (canal, prioridad) con one-hot
+
 Modelos: MultinomialNB, LogisticRegression (lbfgs, multinomial), LinearSVC
+
 Split: train/valid (los mismos CSV exportados en cap.5.2)
+
 Métrica de selección: F1-macro (validación cruzada estratificada en Train)
+
 Salida: resultados/experimentos/YYYYMMDD_HHMMSS_E2_meta/
 """
 
@@ -34,7 +38,7 @@ warnings.filterwarnings("ignore", message=".*liblinear*.")
 warnings.filterwarnings("ignore", message=".*'n_jobs' > 1 does not have any effect*")
 
 # Rutas base
-BASE = Path(__file__).resolve().parents[2]  # repo root (../.. desde scripts)
+BASE = Path(__file__).resolve().parents[2]
 DATA = BASE / "data" / "ml"
 TRAIN_CSV = DATA / "train.csv"
 VALID_CSV = DATA / "valid.csv"
@@ -54,12 +58,12 @@ def read_csv_robusto(path: Path) -> pd.DataFrame:
     try:
         df = pd.read_csv(
             path,
-            sep=None,                # autodetecta separador
+            sep=None, 
             engine="python",
             encoding="utf-8-sig",
             quotechar='"',
             escapechar="\\",
-            on_bad_lines="error"     # no perder filas
+            on_bad_lines="error"
         )
         # Si la autodetección fallara, df tendría 1 sola columna
         if df.shape[1] == 1:
@@ -121,7 +125,7 @@ y_train = train["real_cat"].astype(str)
 X_valid = valid[["texto","canal","prioridad"]]
 y_valid = valid["real_cat"].astype(str)
 
-#  Preproceso 
+# Preproceso 
 text_vec = TfidfVectorizer(
     ngram_range=(1,2),
     min_df=2,
@@ -182,7 +186,7 @@ def run_model(key, est, grid):
     )
     gs.fit(X_train, y_train)
 
-    # Validación en Valid
+    # Validación
     y_pred = gs.predict(X_valid)
     acc = accuracy_score(y_valid, y_pred)
     f1m = f1_score(y_valid, y_pred, average="macro")

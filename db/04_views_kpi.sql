@@ -1,8 +1,8 @@
---==========================================================
+--============================================================================
 -- 04_views_kpi.sql
 -- Vistas KPI para analítica/BI sobre el modelo gold (f_tickets + dimensiones)
 -- Requisitos: 01_schema_ddl.sql y 02_staging_load.sql aplicados.
---==========================================================
+--============================================================================
 
 USE tfg;
 
@@ -106,7 +106,7 @@ FROM f_tickets
 WHERE fecha_resolucion IS NOT NULL
   AND fecha_resolucion < fecha_creacion;
 
--- 9) Accuracy por canal (requiere 03_ml_schema.sql con tickets_clasificados)
+-- 9) Accuracy por canal (requiere 03_ml_schema.sql previo con tickets_clasificados)
 CREATE OR REPLACE VIEW vw_kpi_accuracy_by_channel AS
 SELECT
   c.canal,

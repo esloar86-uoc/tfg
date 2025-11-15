@@ -1,8 +1,8 @@
---==========================================================
+--==================================================================================
 -- 03_ml_schema.sql
 -- Esquema de soporte para ML: versionado de modelos, almacenamiento de predicciones
 -- y vistas de trabajo (entrenamiento, pendientes e informes de evaluación).
---==========================================================
+--==================================================================================
 
 USE tfg;
 
@@ -33,7 +33,7 @@ CREATE TABLE IF NOT EXISTS tickets_clasificados (
   KEY idx_tc_tipo    (id_tipo_predicho)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;
 
--- 3) Vista de entrenamiento (gold etiquetado humano)
+-- 3) Vista de entrenamiento (gold etiquetado manual)
 CREATE OR REPLACE VIEW vw_ml_training AS
 SELECT
   f.id_ticket,
@@ -44,7 +44,7 @@ FROM f_tickets f
 WHERE f.id_tipo_real IS NOT NULL;
 
 -- 4) Vista de pendientes de clasificar (sin predicción para la versión actual)
---    (se dejan todas las versiones para simplicidad; la operativa filtra por modelo al insertar).
+--  (se dejan todas las versiones por simplicidad, operativa filtra modelo al insertar).
 CREATE OR REPLACE VIEW vw_pendientes_clasificar AS
 SELECT
   f.id_ticket,
@@ -58,8 +58,8 @@ WHERE tc.id_ticket IS NULL;
 -- 5) Vista de evaluación (real vs. predicho)
 CREATE OR REPLACE VIEW vw_eval_confusion AS
 SELECT
-  dr.codigo AS real_cat, -- renombrado
-  dp.codigo AS pred_cat, -- predicho
+  dr.codigo AS real_cat,
+  dp.codigo AS pred_cat,
   COUNT(*)  AS n
 FROM f_tickets f
 JOIN tickets_clasificados tc ON tc.id_ticket = f.id_ticket
@@ -78,4 +78,4 @@ SELECT
   f.sla_met,
   f.id_tipo_real
 FROM f_tickets f
-WHERE f.id_tipo_real IS NOT NULL;  -- sólo los que tienen etiqueta real humana
+WHERE f.id_tipo_real IS NOT NULL;

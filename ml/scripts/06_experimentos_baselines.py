@@ -1,6 +1,24 @@
 #------------------------------
 # 06_experimentos_baselines.py
 #------------------------------
+"""
+E1: comparación simple de clasificadores usando solo el campo 'texto' representado con TF-IDF
+
+Modelos: MultinomialNB, LogisticRegression (lbfgs, multinomial), LinearSVC
+
+Split: train/valid (los mismos CSV exportados en cap.5.2)
+
+Métrica de selección: F1-macro (validación cruzada estratificada en Train)
+
+Entradas esperadas:
+data/ml/train.csv
+data/ml/valid.csv
+
+Salida: resultados/experimentos/YYYYMMDD_HHMMSS_baselines/
+
+Reproducibilidad: fijado random_state=42 en los componentes que lo permiten.
+
+"""
 import json, os, sys, time, warnings
 from pathlib import Path
 import numpy as np
@@ -28,9 +46,9 @@ RANDOM_STATE = 42
 N_JOBS = -1
 CV_FOLDS = 5
 
-ROOT = Path(__file__).resolve().parents[2]                   # .../GIT
+ROOT = Path(__file__).resolve().parents[2]
 DATA_ML = ROOT / "data" / "ml"
-RESULTS_ROOT = ROOT / "Resultados" / "experimentos"          # <- Respeta tu carpeta
+RESULTS_ROOT = ROOT / "Resultados" / "experimentos"
 RUN_DIR = RESULTS_ROOT / time.strftime("%Y%m%d_%H%M%S_baselines")
 RUN_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -50,14 +68,14 @@ def read_any_csv(path: Path) -> pd.DataFrame:
         for sep in (";", ","):
             try:
                 df = pd.read_csv(path, sep=sep, encoding=enc)
-                if df.shape[1] == 1:           # probablemente separador distinto
+                if df.shape[1] == 1:
                     tried.append((enc, sep, "1col"))
                     continue
                 return df
             except Exception as e:
                 tried.append((enc, sep, str(e)))
                 continue
-    # último intento con autodetección
+    # último intento autodetección
     df = pd.read_csv(path, sep=None, engine="python", encoding="utf-8-sig")
     return df
 
@@ -84,7 +102,7 @@ def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
     if missing:
         raise ValueError(f"Faltan columnas requeridas {missing}. Columnas presentes: {list(df.columns)}")
 
-    # tipos básicos
+    # Tipos básicos
     df["texto"] = df["texto"].astype(str)
     df["real_cat"] = df["real_cat"].astype(str)
     df["canal"] = df["canal"].astype(str)
@@ -97,7 +115,7 @@ def normalize_columns(df: pd.DataFrame) -> pd.DataFrame:
 train = normalize_columns(read_any_csv(TRAIN_CSV))
 valid = normalize_columns(read_any_csv(VALID_CSV))
 
-# target
+# Target
 le = LabelEncoder()
 y_train = le.fit_transform(train["real_cat"])
 y_valid = le.transform(valid["real_cat"])

@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 """
 normalizar_CSVs.py
-================================================================
+============================================================================
 
 OBJETIVO
 --------
@@ -12,7 +12,7 @@ de 8 clases usando diccionarios internos (ES/EN) y reglas contextuales,
 y aplicar una revisión final (fechas/estado) para obtener un CSV
 listo para aprendizaje supervisado.
 
-PUNTOS CLAVE
+PUNTOS CLAVE:
 ------------
 1) Entrada: rutas en `data/`.
 2) Normalización: cabeceras (aliases), fechas a `YYYY-MM-DD HH:MM`,
@@ -38,10 +38,11 @@ from typing import Dict, List, Tuple
 import pandas as pd
 
 
-# --- CAMBIO 2025-11-02: Sustitución de Kaggle2 por Sintético2 ---
+#---- CAMBIO 2025-11-02: Sustitución de Kaggle2 por Sintético2 ----
 # - Se quita Kaggle2 del script.
 # - Se añade la entrada SINTETICO2 (tickets_soporte_sintetico_2.csv).
 # - _build_final_id conserva prefijos synt2_/synt3_.
+#------------------------------------------------------------------
 
 # -----------------------------------------------------------------------------
 # RUTAS Y CONSTANTES GENERALES
@@ -91,7 +92,9 @@ ALIASES_MAP.update({
     "content":"descripcion","description":"descripcion","ticket_description":"descripcion","body":"descripcion"
 })
 
-# Conjuntos de encodings. Muchos CSV pueden venir en cp1252/latin-1 o con BOM (utf‑8‑sig). Se probará en orden hasta que uno funcione.
+# Conjuntos de encodings.
+# Muchos CSV pueden venir en cp1252/latin-1 o con BOM (utf‑8‑sig). 
+# Se probará en orden hasta que uno funcione.
 CODIGOS: List[str] = ["utf-8","utf-8-sig","latin-1","cp1252","utf-16","utf-16le","utf-16be"]
 
 
@@ -189,9 +192,9 @@ REGLAS_CONTEXTUALES: List[dict] = [
 CAT_ORDER: List[str] = ["ACC","MAIL","NET","HW","SW","APP","POL","SRV"]
 
 
-#-------------------------------------------
+#---------------------------------------------
 # UTILIDADES DE LECTURA Y NORMALIZACIÓN BÁSICA
-#-------------------------------------------
+#---------------------------------------------
 
 def _normalize_col(col: str) -> str:
     """
@@ -359,9 +362,9 @@ def _norm_sla(v: str) -> str:
     return ""
 
 
-#-------------------------------------------
+#------------------------------------------------------
 # CLASIFICACIÓN POR EXPR. REGULARES (KEYWORDS + REGLAS)
-#-------------------------------------------
+#------------------------------------------------------
 
 def _normalize_for_regex(token: str) -> str:
     """Quita tildes y convierte espacios en `\\s+` para cuadrar variantes.”"""
@@ -553,9 +556,9 @@ def _normalize_source(path: Path, fuente: str) -> Tuple[pd.DataFrame, Dict[str, 
     return df, stats
 
 
-#-------------------------------------------
+#---------------------------------------
 # POSTFIX DE COHERENCIA EN FECHAS/ESTADO
-#-------------------------------------------
+#---------------------------------------
 
 OPEN_STATES_ES   = {"Abierto","En curso","Reabierto"}
 CLOSED_STATES_ES = {"Cerrado","Resuelto"}
@@ -666,9 +669,9 @@ def _postfix_dates_states(df: pd.DataFrame) -> pd.DataFrame:
     return out
 
 
-#-------------------------------------------
+#-------------------
 # PROGRAMA PRINCIPAL
-#-------------------------------------------
+#-------------------
 
 def main() -> None:
     """
