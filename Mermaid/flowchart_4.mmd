@@ -1,0 +1,45 @@
+flowchart TB
+
+    subgraph DW["Modelo analítico (Gold)"]
+        direction TB
+        F["f_tickets<br><span style='font-size:12px'>(hechos, KPIs, FRT/TTR, linaje)</span>"]
+        D1["d_canal"]
+        D2["d_prioridad"]
+        D3["d_estado"]
+        D4["d_tipo"]
+        F --> D1
+        F --> D2
+        F --> D3
+        F --> D4
+    end
+
+    subgraph ML["Capa soporte ML"]
+        direction TB
+        DM["d_modelo<br><span style='font-size:12px'>(versionado)</span>"]
+        TC["tickets_clasificados<br><span style='font-size:12px'>(predicción + score)</span>"]
+        DM --> TC
+    end
+
+    F --> TC
+
+    subgraph KPI["Vistas KPI (SQL)"]
+        direction TB
+        V1["vw_kpi_overview"]
+        V2["vw_kpi_by_channel"]
+        V3["vw_kpi_quality_incoherences"]
+        V4["vw_kpi_accuracy_by_channel"]
+    end
+
+    F --> V1
+    F --> V2
+    F --> V3
+    TC --> V4
+
+    subgraph BI["Power BI"]
+        BI1["Dashboards y KPIs"]
+    end
+
+    V1 --> BI1
+    V2 --> BI1
+    V3 --> BI1
+    V4 --> BI1
