@@ -55,6 +55,38 @@ JOIN d_tipo dt ON dt.id_tipo = v.id_tipo_real
 GROUP BY dt.codigo
 ORDER BY n DESC;
 
+-- 4) Vista eval_gold
+
+CREATE VIEW vw_ml_eval_gold AS
+SELECT
+    f.id_ticket,
+    f.ticket_code,
+
+    -- Etiqueta real
+    f.id_tipo_real,
+    dt_real.codigo      AS real_cat,
+
+    -- Predicción del modelo (NULL si el ticket aún no se ha clasificado)
+    tc.id_tipo_predicho,
+    dt_pred.codigo      AS pred_cat,
+    tc.score_predicho,
+    tc.modelo_version,
+
+    -- Indicador de acierto
+    CASE
+        WHEN tc.id_tipo_predicho IS NULL THEN NULL
+        WHEN f.id_tipo_real = tc.id_tipo_predicho THEN 1
+        ELSE 0
+    END AS es_acierto
+FROM f_tickets f
+JOIN d_tipo dt_real
+    ON dt_real.id_tipo = f.id_tipo_real
+LEFT JOIN tickets_clasificados tc
+    ON tc.id_ticket = f.id_ticket
+LEFT JOIN d_tipo dt_pred
+    ON dt_pred.id_tipo = tc.id_tipo_predicho;
+
+
 ------------------
 -- Verificaciones:
 ------------------

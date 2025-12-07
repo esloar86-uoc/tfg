@@ -1,0 +1,9 @@
+flowchart LR
+    A["ETL-A<br>Generación y normalización<br>de datos"]
+        --> B["Staging MySQL<br>Normalización y controles"]
+    B --> C["Gold DWH<br>f_tickets<br>Dimensiones y vistas KPI"]
+    C --> D["ETL-B<br>Preparación para ML"]
+    D --> E["Entrenamiento ML<br>NB / RL / SVM"]
+    E --> F["Inferencia ML<br>Predicciones y metricas"]
+    C --> G["Power BI<br>Dashboards y KPIs"]
+    F --> G

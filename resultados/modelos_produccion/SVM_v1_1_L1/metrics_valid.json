@@ -1,0 +1,7 @@
+{
+  "train_original_size": 798,
+  "train_augmented_size": 815,
+  "extra_from_L1": 17,
+  "valid_size": 201,
+  "f1_macro_valid_v1_1": 0.7986733017258679
+}

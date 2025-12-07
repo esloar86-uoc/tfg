@@ -1,5 +1,5 @@
 --==============================================================
--- 02_staging_load.sql  (manual_cat.csv -> staging -> f_tickets)
+-- 02_staging_load_L4.sql  (L4_manual_cat.csv -> staging -> f_tickets)
 -- Limpieza staging, promoción idempotente, KPIs y linaje
 --==============================================================
 
@@ -25,9 +25,9 @@ SET sla_met = CASE LOWER(sla_met)
                 ELSE NULL
               END;
 
--- Linaje en staging (por si hubiera llegado vacío)
+-- Linaje en staging (por si hubiera llegado vacío) - L4_demo
 UPDATE stg_tickets
-SET origen='manual', id_origen=id_ticket
+SET origen='L4_demo', id_origen=id_ticket
 WHERE (origen IS NULL OR origen='') OR (id_origen IS NULL OR id_origen='');
 
 -- Unificación de canal a la dimensión
@@ -196,9 +196,9 @@ JOIN d_estado    de ON de.estado    = s.estado
 LEFT JOIN d_tipo dt ON dt.codigo    = s.categoria
 WHERE s.fc IS NOT NULL;
 
--- 2.4. Linaje (evita duplicados si se reejecuta)
+-- 2.4. Linaje (evita duplicados si se reejecuta) - L4_demo
 INSERT IGNORE INTO map_id_origen (id_ticket, origen, id_origen)
-SELECT f.id_ticket, 'manual', st.id_ticket
+SELECT f.id_ticket, 'L4', st.id_ticket
 FROM stg_tickets st
 JOIN f_tickets   f ON f.ticket_code = st.id_ticket;
 
